@@ -129,9 +129,33 @@ class $modify(MyMenuLayer, MenuLayer) {
 							return;
 						}
 
-						// Store in downloaded levels so GD preserves local progress
+						// Store in downloaded levels so GD recognizes it
 						auto key = GameLevelManager::sharedState()->getLevelDownloadKey(levelId, false, 0);
 						GameLevelManager::sharedState()->m_downloadedLevels->setObject(level, key);
+
+						// Merge local progress so progress isn't reset
+						if (auto saved = GameLevelManager::sharedState()->getSavedLevel(levelId)) {
+							level->m_normalPercent = saved->m_normalPercent;
+							level->m_newNormalPercent2 = saved->m_newNormalPercent2;
+							level->m_practicePercent = saved->m_practicePercent;
+							level->m_attempts = saved->m_attempts;
+							level->m_jumps = saved->m_jumps;
+							level->m_clicks = saved->m_clicks;
+							level->m_attemptTime = saved->m_attemptTime;
+							level->m_orbCompletion = saved->m_orbCompletion;
+							level->m_stars = saved->m_stars;
+							level->m_bestTime = saved->m_bestTime;
+							level->m_bestPoints = saved->m_bestPoints;
+							level->m_coins = saved->m_coins;
+							level->m_firstCoinVerified = saved->m_firstCoinVerified;
+							level->m_secondCoinVerified = saved->m_secondCoinVerified;
+							level->m_thirdCoinVerified = saved->m_thirdCoinVerified;
+							level->m_personalBests = saved->m_personalBests;
+							level->m_localBestTimes = saved->m_localBestTimes;
+							level->m_localBestPoints = saved->m_localBestPoints;
+							level->m_savedTime = saved->m_savedTime;
+							level->m_savedPoints = saved->m_savedPoints;
+						}
 
 						auto scene = LevelInfoLayer::scene(level, false);
 						CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5f, scene));
