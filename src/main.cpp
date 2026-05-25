@@ -103,7 +103,7 @@ class $modify(MyMenuLayer, MenuLayer) {
 						.bodyString(body)
 						.header("Content-Type", "application/x-www-form-urlencoded")
 						.post("https://www.boomlings.com/database/downloadGJLevel22.php"),
-					[this](web::WebResponse res) {
+					[this, levelId](web::WebResponse res) {
 						hideLoading();
 
 						if (!res.ok()) {
@@ -128,6 +128,10 @@ class $modify(MyMenuLayer, MenuLayer) {
 							FLAlertLayer::create("Error", "Failed to create level!", "OK")->show();
 							return;
 						}
+
+						// Store in downloaded levels so GD preserves local progress
+						auto key = GameLevelManager::sharedState()->getLevelDownloadKey(levelId, false, 0);
+						GameLevelManager::sharedState()->m_downloadedLevels->setObject(level, key);
 
 						auto scene = LevelInfoLayer::scene(level, false);
 						CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5f, scene));
