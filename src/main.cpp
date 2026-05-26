@@ -78,21 +78,39 @@ class $modify(MyMenuLayer, MenuLayer) {
 				}
 
 				auto json = res.json().unwrapOr(matjson::Value());
-				auto message = json["message"].asString().unwrapOr("");
+				auto raw = json["message"].asString().unwrapOr("");
 
-				if (message.empty()) {
+				if (raw.empty()) {
 					hideLoading();
 					FLAlertLayer::create("MOTD", "No MOTD set!", "OK")->show();
 					return;
 				}
 
 				int levelId = 0;
-				try {
-					levelId = std::stoi(message);
-				} catch (...) {
-					hideLoading();
-					FLAlertLayer::create("MOTD", message, "OK")->show();
-					return;
+				std::string creatorName;
+				// Try Discord format first: "...\nID: 12345"  and "... by CreatorName ..."
+				auto idPos = raw.find("ID:");
+				if (idPos != std::string::npos) {
+					try { levelId = std::stoi(raw.substr(idPos + 3)); } catch (...) {}
+					// Parse "by CreatorName" from the message
+					auto byPos = raw.find("by ");
+					if (byPos != std::string::npos) {
+						auto start = byPos + 3;
+						auto end = raw.find('\n', start);
+						if (end == std::string::npos) end = raw.find('\r', start);
+						if (end == std::string::npos) end = raw.length();
+						creatorName = raw.substr(start, end - start);
+						// Trim trailing spaces
+						while (!creatorName.empty() && creatorName.back() == ' ') creatorName.pop_back();
+					}
+				}
+				// Fallback: raw is just a numeric level ID
+				if (levelId == 0) {
+					try { levelId = std::stoi(raw); } catch (...) {
+						hideLoading();
+						FLAlertLayer::create("MOTD", raw, "OK")->show();
+						return;
+					}
 				}
 
 				auto body = fmt::format(
@@ -103,7 +121,7 @@ class $modify(MyMenuLayer, MenuLayer) {
 						.bodyString(body)
 						.header("Content-Type", "application/x-www-form-urlencoded")
 						.post("https://www.boomlings.com/database/downloadGJLevel22.php"),
-					[this, levelId](web::WebResponse res) {
+					[this, levelId, creatorName](web::WebResponse res) {
 						hideLoading();
 
 						if (!res.ok()) {
@@ -130,24 +148,6 @@ class $modify(MyMenuLayer, MenuLayer) {
 						}
 
 						level->m_dontSave = false;
-
-						// Parse creator name from raw response "1:id:2:name:3:...:6:creator:..."
-						std::string creatorName = level->m_creatorName;
-						{
-							auto raw = text.substr(0, text.find('#'));
-							std::istringstream stream(raw);
-							std::string seg;
-							int key = 0, idx = 0;
-							while (std::getline(stream, seg, ':')) {
-								if (idx % 2 == 0) {
-									try { key = std::stoi(seg); } catch (...) { break; }
-								} else if (key == 6) {
-									creatorName = seg;
-									break;
-								}
-								idx++;
-							}
-						}
 						level->m_creatorName = creatorName;
 
 						// Store in downloaded levels
