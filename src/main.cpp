@@ -130,24 +130,34 @@ class $modify(MyMenuLayer, MenuLayer) {
 						}
 
 						level->m_dontSave = false;
-						if (auto creator = dict->objectForKey("6")) {
-							if (auto ccStr = typeinfo_cast<cocos2d::CCString*>(creator)) {
-								level->m_creatorName = ccStr->getCString();
+
+						// Parse creator name from raw response "1:id:2:name:3:...:6:creator:..."
+						std::string creatorName = level->m_creatorName;
+						{
+							auto raw = text.substr(0, text.find('#'));
+							std::istringstream stream(raw);
+							std::string seg;
+							int key = 0, idx = 0;
+							while (std::getline(stream, seg, ':')) {
+								if (idx % 2 == 0) {
+									try { key = std::stoi(seg); } catch (...) { break; }
+								} else if (key == 6) {
+									creatorName = seg;
+									break;
+								}
+								idx++;
 							}
 						}
+						level->m_creatorName = creatorName;
 
 						// Store in downloaded levels
-						auto key = GameLevelManager::sharedState()->getLevelDownloadKey(levelId, false, 0);
-						GameLevelManager::sharedState()->m_downloadedLevels->setObject(level, key);
+						auto dlKey = GameLevelManager::sharedState()->getLevelDownloadKey(levelId, false, 0);
+						GameLevelManager::sharedState()->m_downloadedLevels->setObject(level, dlKey);
 
 						// Use saved level if it exists (preserves progress), otherwise save for future tracking
 						if (auto saved = GameLevelManager::sharedState()->getSavedLevel(levelId)) {
 							level = saved;
-							if (auto creator = dict->objectForKey("6")) {
-								if (auto ccStr = typeinfo_cast<cocos2d::CCString*>(creator)) {
-									level->m_creatorName = ccStr->getCString();
-								}
-							}
+							level->m_creatorName = creatorName;
 						} else {
 							GameLevelManager::sharedState()->saveLevel(level);
 						}
