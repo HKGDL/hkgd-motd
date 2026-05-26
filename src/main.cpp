@@ -130,6 +130,11 @@ class $modify(MyMenuLayer, MenuLayer) {
 						}
 
 						level->m_dontSave = false;
+						if (auto creator = dict->objectForKey("6")) {
+							if (auto ccStr = typeinfo_cast<cocos2d::CCString*>(creator)) {
+								level->m_creatorName = ccStr->getCString();
+							}
+						}
 
 						// Store in downloaded levels
 						auto key = GameLevelManager::sharedState()->getLevelDownloadKey(levelId, false, 0);
@@ -138,6 +143,11 @@ class $modify(MyMenuLayer, MenuLayer) {
 						// Use saved level if it exists (preserves progress), otherwise save for future tracking
 						if (auto saved = GameLevelManager::sharedState()->getSavedLevel(levelId)) {
 							level = saved;
+							if (auto creator = dict->objectForKey("6")) {
+								if (auto ccStr = typeinfo_cast<cocos2d::CCString*>(creator)) {
+									level->m_creatorName = ccStr->getCString();
+								}
+							}
 						} else {
 							GameLevelManager::sharedState()->saveLevel(level);
 						}
