@@ -3,6 +3,7 @@
 #include <Geode/utils/web.hpp>
 #include <Geode/binding/LevelInfoLayer.hpp>
 #include <Geode/binding/LoadingCircle.hpp>
+#include <sstream>
 
 using namespace geode::prelude;
 
@@ -10,6 +11,9 @@ class $modify(MyMenuLayer, MenuLayer) {
 	struct Fields {
 		TaskHolder<web::WebResponse> m_motdListener;
 		TaskHolder<web::WebResponse> m_levelListener;
+		TaskHolder<web::WebResponse> m_userListener;
+		GJGameLevel* m_level = nullptr;
+		int m_levelId = 0;
 		LoadingCircle* m_loadingCircle = nullptr;
 		CCLabelBMFont* m_loadingLabel = nullptr;
 	};
@@ -161,9 +165,44 @@ class $modify(MyMenuLayer, MenuLayer) {
 						} else {
 							GameLevelManager::sharedState()->saveLevel(level);
 						}
+						level->retain(); // keep alive during user lookup
 
-						auto scene = LevelInfoLayer::scene(level, false);
-						CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5f, scene));
+						m_fields->m_level = level;
+						m_fields->m_levelId = levelId;
+
+						// Look up accountID so creator shows yellow (registered), not green
+						auto userBody = fmt::format(
+							"secret=Wmfd2893gb7&str={}", creatorName
+						);
+						m_fields->m_userListener.spawn(
+							web::WebRequest()
+								.bodyString(userBody)
+								.header("Content-Type", "application/x-www-form-urlencoded")
+								.post("https://www.boomlings.com/database/getGJUsers20.php"),
+							[this](web::WebResponse res) {
+								if (res.ok()) {
+									auto userText = res.string().unwrapOr("");
+									// Parse accountID (key 16) from "1:name:2:userID:...:16:accountID:..."
+									auto data = userText.substr(0, userText.find('#'));
+									data = data.substr(0, data.find('|'));
+									std::istringstream stream(data);
+									std::string seg;
+									int key = 0, idx = 0;
+									while (std::getline(stream, seg, ':')) {
+										if (idx % 2 == 0) {
+											try { key = std::stoi(seg); } catch (...) { break; }
+										} else if (key == 16) {
+											try { m_fields->m_level->m_accountID = std::stoi(seg); } catch (...) {}
+											break;
+										}
+										idx++;
+									}
+								}
+								auto scene = LevelInfoLayer::scene(m_fields->m_level, false);
+								CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5f, scene));
+								m_fields->m_level->release();
+							}
+						);
 					}
 				);
 			}
