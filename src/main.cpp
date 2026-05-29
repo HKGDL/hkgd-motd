@@ -152,7 +152,7 @@ class $modify(MyMenuLayer, MenuLayer) {
 						}
 
 						level->m_dontSave = false;
-						level->m_creatorName = creatorName;
+						if (!creatorName.empty()) level->m_creatorName = creatorName;
 
 						// Store in downloaded levels
 						auto dlKey = GameLevelManager::sharedState()->getLevelDownloadKey(levelId, false, 0);
@@ -161,7 +161,7 @@ class $modify(MyMenuLayer, MenuLayer) {
 						// Use saved level if it exists (preserves progress), otherwise save for future tracking
 						if (auto saved = GameLevelManager::sharedState()->getSavedLevel(levelId)) {
 							level = saved;
-							level->m_creatorName = creatorName;
+							if (!creatorName.empty()) level->m_creatorName = creatorName;
 						} else {
 							GameLevelManager::sharedState()->saveLevel(level);
 						}
