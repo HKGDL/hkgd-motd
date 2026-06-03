@@ -215,7 +215,7 @@ class $modify(MyMenuLayer, MenuLayer) {
 		if (!MenuLayer::init()) return false;
 
 		auto yuiSprite = CCSprite::create("yui-token.png"_spr);
-		yuiSprite->setScale(0.8f);
+		yuiSprite->setScale(2.0f);
 		auto myButton = CCMenuItemSpriteExtra::create(
 			yuiSprite,
 			this,
