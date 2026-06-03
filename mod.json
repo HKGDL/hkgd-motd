@@ -10,7 +10,12 @@
 	"name": "hkgdMOTD",
 	"version": "v1.0.0",
 	"developer": "HKGD Community",
-	"description": "Fetches the Map of the Day from HKGD and takes you to that level.",
+	"description": "Fetches HKGD MOTD S3 maps (Daily, Weekly, Monthly, Platformer) and takes you to that level.",
+	"resources": {
+		"sprites": [
+			"resources/yui-token.png"
+		]
+	},
 	"dependencies": {
 		"geode.node-ids": ">=v1.23.3"
 	},
