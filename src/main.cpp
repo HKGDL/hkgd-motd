@@ -3,6 +3,8 @@
 #include <Geode/utils/web.hpp>
 #include <Geode/binding/LevelInfoLayer.hpp>
 #include <Geode/binding/LoadingCircle.hpp>
+#include <algorithm>
+#include <functional>
 #include <sstream>
 
 using namespace geode::prelude;
