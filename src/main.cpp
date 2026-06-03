@@ -276,10 +276,17 @@ class $modify(MyMenuLayer, MenuLayer) {
 				}
 
 				auto json = res.json().unwrapOr(matjson::Value());
-				auto types = json["types"].asArray().unwrapOr(std::vector<matjson::Value>());
 				auto messages = json["messages"];
 
+				auto typeRes = json["types"].asArray();
+				if (!typeRes) {
+					hideLoading();
+					FLAlertLayer::create("MOTD", "No maps available!", "OK")->show();
+					return;
+				}
+				auto types = typeRes.unwrap();
 				if (types.empty()) {
+					hideLoading();
 					FLAlertLayer::create("MOTD", "No maps available!", "OK")->show();
 					return;
 				}
