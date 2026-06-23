@@ -8,9 +8,9 @@
 	},
 	"id": "hkgd-community.hkgdmotd",
 	"name": "hkgdMOTD",
-	"version": "v1.0.0",
+	"version": "v2.0.0",
 	"developer": "HKGD Community",
-	"description": "Fetches HKGD MOTD S3 maps (Daily, Weekly, Monthly, Platformer) and takes you to that level.",
+	"description": "Opens HKGD Map Of The Day S3 in-game lists (Daily, Weekly, Monthly, Platformer, Curve) from the HKGDOfficial account.",
 	"resources": {
 		"sprites": [
 			"resources/yui-token.png"
@@ -26,13 +26,5 @@
 	},
 	"tags": [
 		"utility", "online", "interface"
-	],
-	"settings": {
-		"api-url": {
-			"name": "API URL(EDIT ON RISK)",
-			"description": "The HKGD API base URL",
-			"type": "string",
-			"default": "https://api.hkgdl.dpdns.org/api"
-		}
-	}
+	]
 }
